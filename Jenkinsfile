@@ -57,8 +57,8 @@ pipeline {
 
                     selenium_ready=0
                     for attempt in $(seq 1 60); do
-                      if docker run --rm --network "$NETWORK_NAME" python:3.12-slim \
-                        python -c "import json,urllib.request; d=json.load(urllib.request.urlopen('http://$SELENIUM_CONTAINER:4444/status',timeout=3)); raise SystemExit(0 if d.get('value',{}).get('ready') else 1)" \
+                      if docker exec "$APP_CONTAINER" python -c \
+                        "import json,urllib.request; d=json.load(urllib.request.urlopen('http://$SELENIUM_CONTAINER:4444/status',timeout=3)); raise SystemExit(0 if d.get('value',{}).get('ready') else 1)" \
                         >/dev/null 2>&1; then selenium_ready=1; break; fi
                       sleep 2
                     done
