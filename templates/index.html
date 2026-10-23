@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c35">
+  <title>CivicTrack | Community issue desk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}" aria-label="CivicTrack home">
+    <span class="brand-mark" aria-hidden="true">C</span>
+    <span>Civic<span class="brand-light">Track</span><small>COMMUNITY ISSUE DESK</small></span>
+  </a>
+  <div class="topbar-note"><span class="live-dot"></span> Local community dashboard</div>
+</header>
+<main class="page-shell">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">SMALL REPORTS. BETTER NEIGHBOURHOODS.</p>
+      <h1>Make your corner<br><span>of the city better.</span></h1>
+      <p class="hero-description">Report a local issue, follow its progress, and help your community keep moving.</p>
+      <a class="hero-link" href="#report-form">Report an issue <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="sun"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+      <div class="city-building building-one"></div><div class="city-building building-two"></div>
+      <div class="city-building building-three"></div><div class="city-building building-four"></div>
+      <div class="street"></div><div class="leaf leaf-one"></div><div class="leaf leaf-two"></div>
+      <div class="art-label">YOUR<br>STREET,<br>YOUR VOICE.</div>
+    </div>
+  </section>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-stack" role="status" aria-live="polite">
+      {% for category, message in messages %}<p class="flash flash-{{ category }}">{{ message }}</p>{% endfor %}
+    </div>{% endif %}
+  {% endwith %}
+  <section class="stats-grid" aria-label="Issue summary">
+    <article class="stat-card stat-total"><span class="stat-label">TOTAL REPORTS</span><strong id="count-total">{{ total }}</strong><span class="stat-foot">Issues logged so far</span><span class="stat-icon" aria-hidden="true">▤</span></article>
+    <article class="stat-card"><span class="stat-label">OPEN</span><strong id="count-open">{{ counts['Open'] }}</strong><span class="stat-foot">Needs attention</span><span class="stat-icon icon-open" aria-hidden="true">○</span></article>
+    <article class="stat-card"><span class="stat-label">IN PROGRESS</span><strong id="count-progress">{{ counts['In Progress'] }}</strong><span class="stat-foot">Being worked on</span><span class="stat-icon icon-progress" aria-hidden="true">↗</span></article>
+    <article class="stat-card"><span class="stat-label">RESOLVED</span><strong id="count-resolved">{{ counts['Resolved'] }}</strong><span class="stat-foot">Marked complete</span><span class="stat-icon icon-resolved" aria-hidden="true">✓</span></article>
+  </section>
+  <div class="content-grid">
+    <section class="panel report-panel" id="report-form">
+      <div class="section-heading"><div><p class="eyebrow">ADD TO THE MAP</p><h2>Report an issue</h2></div><span class="heading-number">01</span></div>
+      <p class="muted">Share the details so the right issue can be tracked.</p>
+      <form action="{{ url_for('create_issue') }}" method="post" id="issue-form">
+        <label for="title">Issue title <span>*</span></label>
+        <input id="title" name="title" maxlength="100" placeholder="e.g. Pothole near the bus stop" required>
+        <div class="form-row">
+          <div><label for="category">Category <span>*</span></label><select id="category" name="category" required>
+            <option value="">Choose a category</option>{% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}
+          </select></div>
+          <div><label for="location">Location <span>*</span></label><input id="location" name="location" maxlength="120" placeholder="Street or landmark" required></div>
+        </div>
+        <label for="description">Description <span>*</span></label>
+        <textarea id="description" name="description" rows="4" maxlength="1000" placeholder="What happened? Add any helpful details..." required></textarea>
+        <button class="primary-button" type="submit">Submit report <span aria-hidden="true">→</span></button>
+        <p class="form-note">* Required fields. Your report will appear in the issue desk.</p>
+      </form>
+    </section>
+    <section class="panel issues-panel" id="issue-list">
+      <div class="section-heading"><div><p class="eyebrow">COMMUNITY PULSE</p><h2>Issue desk</h2></div><span class="heading-number">02</span></div>
+      <div class="issue-toolbar"><p class="muted">{{ issues|length }} report{% if issues|length != 1 %}s{% endif %} shown</p>
+        <form action="{{ url_for('dashboard') }}" method="get" class="filter-form">
+          <label class="sr-only" for="status-filter">Filter by status</label>
+          <select id="status-filter" name="status" aria-label="Filter by status" onchange="this.form.submit()">
+            <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All statuses</option>
+            {% for status in statuses %}<option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+          </select>
+        </form>
+      </div>
+      {% if issues %}
+        <div class="issue-list">
+          {% for issue in issues %}
+          <article class="issue-card" data-issue-id="{{ issue['id'] }}">
+            <div class="issue-card-top"><span class="category-tag">{{ issue['category'] }}</span><span class="status status-{{ issue['status']|lower|replace(' ', '-') }}">{{ issue['status'] }}</span></div>
+            <h3>{{ issue['title'] }}</h3><p class="issue-location"><span aria-hidden="true">⌖</span> {{ issue['location'] }}</p>
+            <p class="issue-description">{{ issue['description'] }}</p>
+            <div class="issue-card-bottom"><time>{{ issue['created_at'] }}</time>
+              <form action="{{ url_for('update_status', issue_id=issue['id']) }}" method="post" class="status-form">
+                <label class="sr-only" for="status-{{ issue['id'] }}">Update status for {{ issue['title'] }}</label>
+                <select id="status-{{ issue['id'] }}" name="status" aria-label="Update status for {{ issue['title'] }}">
+                  {% for status in statuses %}<option value="{{ status }}" {% if issue['status'] == status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+                </select><button class="small-button" type="submit">Update</button>
+              </form>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><span class="empty-icon" aria-hidden="true">✳</span><h3>No reports here yet</h3>
+          <p>{% if selected_status == 'All' %}Be the first to report an issue in your community.{% else %}No reports currently have this status. Try another filter.{% endif %}</p>
+          <a href="#report-form">Create the first report →</a>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+  <footer class="footer"><span>© CivicTrack · Community Issue Desk</span><span>Built for a better everyday city <span aria-hidden="true">✳</span></span></footer>
+</main>
+</body>
+</html>
