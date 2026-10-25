@@ -68,7 +68,15 @@ class CivicTrackBrowserTests(unittest.TestCase):
         Select(self.driver.find_element(By.ID, "category")).select_by_visible_text("Road Damage")
         self.driver.find_element(By.ID, "location").send_keys("Test Avenue")
         self.driver.find_element(By.ID, "description").send_keys("Automated browser test: issue lifecycle.")
-        self.driver.find_element(By.CSS_SELECTOR, "#issue-form button[type='submit']").click()
+        submit_button = self.driver.find_element(
+            By.CSS_SELECTOR, "#issue-form button[type='submit']"
+        )
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block: 'center'});", submit_button
+        )
+        self.wait.until(EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, "#issue-form button[type='submit']")
+        )).click()
         xpath = f"//article[contains(@class,'issue-card')][.//h3[normalize-space()='{unique_title}']]"
         card = self.wait.until(EC.visibility_of_element_located((By.XPATH, xpath)))
         self.assertIn("Open", card.text)
