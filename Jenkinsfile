@@ -9,7 +9,7 @@ pipeline {
         IMAGE_NAME = 'civictrack-ci'
         APP_CONTAINER = 'civictrack-app-ci'
         SELENIUM_CONTAINER = 'civictrack-selenium-ci'
-        NETWORK_NAME = 'civictrack-net-${BUILD_NUMBER}'
+        NETWORK_NAME = "civictrack-net-${BUILD_NUMBER}"
     }
     stages {
         stage('Checkout & Verify') {
@@ -67,18 +67,44 @@ pipeline {
                 '''
             }
         }
+
         stage('Selenium End-to-End Tests') {
             steps {
                 sh '''
                     set -eu
-                    docker run --rm --network "$NETWORK_NAME" \
+
+                    TEST_IMAGE="civictrack-tests:$BUILD_NUMBER"
+                    TEST_CONTAINER="civictrack-test-runner-$BUILD_NUMBER"
+
+                    docker build --pull \
+                      -t "$TEST_IMAGE" \
+                      -f- . <<'DOCKERFILE'
+FROM python:3.12-slim
+WORKDIR /workspace
+COPY tests/ ./tests/
+RUN pip install --no-cache-dir selenium==4.34.2 \
+    && mkdir -p /artifacts
+CMD ["python", "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py", "-v"]
+DOCKERFILE
+
+                    set +e
+                    docker run --name "$TEST_CONTAINER" \
+                      --network "$NETWORK_NAME" \
                       -e APP_URL="http://$APP_CONTAINER:5000" \
                       -e SELENIUM_REMOTE_URL="http://$SELENIUM_CONTAINER:4444/wd/hub" \
                       -e SCREENSHOT_DIR=/artifacts \
-                      -v "$WORKSPACE/artifacts:/artifacts" \
-                      -w /workspace -v "$WORKSPACE:/workspace:ro" \
-                      python:3.12-slim sh -c \
-                      "pip install --no-cache-dir selenium==4.34.2 && python -m unittest discover -s tests -p 'test_*.py' -v"
+                      "$TEST_IMAGE"
+                    test_status=$?
+                    set -e
+
+                    mkdir -p artifacts
+                    docker cp "$TEST_CONTAINER:/artifacts/." \
+                      "$WORKSPACE/artifacts/" || true
+
+                    docker rm -f "$TEST_CONTAINER" >/dev/null 2>&1 || true
+                    docker image rm "$TEST_IMAGE" >/dev/null 2>&1 || true
+
+                    exit "$test_status"
                 '''
             }
         }
