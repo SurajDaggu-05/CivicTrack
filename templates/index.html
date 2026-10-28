@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -113,6 +114,16 @@
             </form>
           </section>
 
+
+          <section class="panel map-panel" aria-labelledby="map-title">
+            <div class="panel-heading map-heading"><div class="panel-heading-icon map-heading-icon">⌖</div><div><p class="panel-kicker">YOUR NEIGHBOURHOOD</p><h2 id="map-title">Issue map</h2></div><span class="map-live-pill"><i></i> Live</span></div>
+            <p class="map-intro">Explore reports by location. Search a landmark or select a pin to see what needs attention.</p>
+            <div class="map-search-row"><label class="sr-only" for="map-search">Search a place</label><input id="map-search" type="search" placeholder="Search a street or landmark…"><button class="map-search-button" id="map-search-button" type="button" aria-label="Find place">⌕</button></div>
+            <div class="map-frame"><div id="issue-map" role="application" aria-label="Interactive community issue map"></div><div class="map-map-label"><span class="map-location-dot"></span><span><strong>Community view</strong><small>OpenStreetMap</small></span></div></div>
+            <div class="map-legend"><span><i class="legend-open"></i> Open</span><span><i class="legend-progress"></i> In progress</span><span><i class="legend-resolved"></i> Resolved</span></div>
+            <div class="map-summary-row"><div><strong id="map-pin-count">0</strong><span>mapped reports</span></div><a href="#issue-list">View issue desk ↗</a></div>
+            <p class="map-note" id="map-note" aria-live="polite">Loading neighbourhood map…</p>
+          </section>
           <section class="panel issues-panel" id="issue-list">
             <div class="panel-heading issue-heading">
               <div class="panel-heading-icon issues-heading-icon">☷</div>
@@ -160,6 +171,37 @@
       </div>
     </main>
   </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+  (function () {
+    const el = document.getElementById('issue-map');
+    if (!el || typeof L === 'undefined') return;
+    const map = L.map(el, { zoomControl: false, scrollWheelZoom: false }).setView([17.385, 78.4867], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    const search = async () => {
+      const input = document.getElementById('map-search');
+      const query = input.value.trim();
+      if (!query) { input.focus(); return; }
+      document.getElementById('map-note').textContent = 'Searching…';
+      try {
+        const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(query + ', Hyderabad, Telangana, India');
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!data.length) { document.getElementById('map-note').textContent = 'Place not found. Try a nearby landmark or full street name.'; return; }
+        const point = [Number(data[0].lat), Number(data[0].lon)];
+        map.setView(point, 15);
+        L.marker(point).addTo(map).bindPopup(query).openPopup();
+        document.getElementById('map-note').textContent = 'Showing ' + query + '.';
+      } catch (_) { document.getElementById('map-note').textContent = 'Map search is temporarily unavailable.'; }
+    };
+    document.getElementById('map-search-button').addEventListener('click', search);
+    document.getElementById('map-search').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
+    document.getElementById('map-note').textContent = 'Search a street or landmark to explore the neighbourhood.';
+    setTimeout(() => map.invalidateSize(), 250);
+  })();
+  </script>
   <nav class="mobile-bottom-nav" aria-label="Mobile navigation"><a href="#overview" class="mobile-nav-active"><span>◫</span>Overview</a><a href="#issue-list"><span>☷</span>Issues</a><a href="#report-form"><span>＋</span>Report</a></nav>
 </body>
 </html>
