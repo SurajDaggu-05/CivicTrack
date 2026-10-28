@@ -147,3 +147,40 @@ input:focus,select:focus,textarea:focus{border-color:#9384f0;background:#fff;box
 @media(max-width:380px){.page-content{padding-left:12px;padding-right:12px}.topbar{padding:0 12px}.stat-card{padding:11px}.stat-card strong{font-size:25px}.panel{padding:14px 11px}.issue-card-top{align-items:flex-start}.status{font-size:8px}.category-tag{font-size:8px}.issue-card h3{font-size:12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
 @media(forced-colors:active){a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid CanvasText}}
+
+/* Premium neighbourhood map workspace */
+.content-grid{grid-template-columns:minmax(280px,.88fr) minmax(0,1.12fr);align-items:start}
+.map-panel{padding:21px;min-width:0;overflow:hidden}
+.map-heading{margin-bottom:8px}
+.map-heading-icon{background:#e8f6f2;color:#178c72}
+.map-live-pill{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:5px 8px;border-radius:99px;background:#eaf9f2;color:#1a906b;font-size:9px;font-weight:800}
+.map-live-pill i{width:6px;height:6px;background:#20b784;border-radius:50%;box-shadow:0 0 0 3px #d2f3e4}
+.map-intro{margin:0 0 14px;color:#85899c;font-size:11px;line-height:1.6}
+.map-search-row{display:flex;gap:7px;margin-bottom:11px}
+.map-search-row input{height:38px;font-size:11px;background:#fbfbfe}
+.map-search-button{flex:0 0 39px;border:0;border-radius:8px;background:#252b43;color:white;font-size:22px;cursor:pointer}
+.map-search-button:hover{background:#5543c8}
+.map-frame{position:relative;border:1px solid #e4e9ef;border-radius:12px;overflow:hidden;background:#eaf0ec}
+#issue-map{height:370px;width:100%;z-index:1}
+.leaflet-container{font:11px "DM Sans",sans-serif}
+.leaflet-control-attribution{font-size:8px!important;background:rgba(255,255,255,.82)!important}
+.leaflet-control-zoom a{color:#30364b!important;border-color:#e7e9f0!important}
+.map-map-label{position:absolute;z-index:500;left:11px;top:11px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.9);border-radius:9px;background:rgba(255,255,255,.94);box-shadow:0 3px 12px rgba(31,47,59,.1);pointer-events:none}
+.map-location-dot{width:9px;height:9px;border-radius:50%;background:#25aa82;box-shadow:0 0 0 4px #dff7ed}
+.map-map-label strong,.map-map-label small{display:block}
+.map-map-label strong{font-size:10px;color:#34394d}
+.map-map-label small{margin-top:1px;font-size:8px;color:#8d93a2}
+.map-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:13px 1px 11px;border-bottom:1px solid #f0f0f6}
+.map-legend span{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:600;color:#777d90}
+.map-legend i{width:7px;height:7px;border-radius:50%}
+.legend-open{background:#e5a13b}.legend-progress{background:#4388df}.legend-resolved{background:#20a47a}
+.map-summary-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:13px}
+.map-summary-row>div{display:flex;align-items:baseline;gap:7px}
+.map-summary-row strong{font:800 20px Manrope,sans-serif;letter-spacing:-.5px;color:#272b40}
+.map-summary-row span{font-size:10px;color:#85899c}
+.map-summary-row a{font-size:10px;color:#6554d7;text-decoration:none;font-weight:800;white-space:nowrap}
+.map-note{font-size:9px;color:#a0a3b2;margin:9px 0 0;min-height:14px}
+@media(max-width:1150px){.content-grid{grid-template-columns:minmax(250px,.85fr) minmax(0,1.15fr);gap:12px}#issue-map{height:330px}.panel{padding:17px}}
+@media(max-width:850px){.content-grid{grid-template-columns:1fr}.report-panel{order:0}.map-panel{order:1}.issues-panel{order:2}#issue-map{height:340px}}
+@media(max-width:680px){.map-panel{padding:16px 14px}#issue-map{height:300px}.map-legend{gap:12px}.map-summary-row strong{font-size:18px}}
+@media(max-width:380px){#issue-map{height:265px}.map-legend{gap:8px}.map-legend span{font-size:8px}}
