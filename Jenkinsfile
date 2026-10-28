@@ -44,7 +44,7 @@ pipeline {
                     docker run -d --name "$APP_CONTAINER" --network "$NETWORK_NAME" \
                       -e DB_PATH=/tmp/civictrack-ci.db "$IMAGE_NAME:$BUILD_NUMBER"
                     docker run -d --name "$SELENIUM_CONTAINER" --network "$NETWORK_NAME" \
-                      --shm-size=1g selenium/standalone-chrome:latest
+                      --shm-size=1g selenium/standalone-chrome:4.27.0
 
                     app_ready=0
                     for attempt in $(seq 1 40); do
